@@ -1,0 +1,128 @@
+{
+  "name": "legal",
+  "type": "cli",
+  "command": "aech-cli-legal",
+  "spec_version": 4,
+  "description": "Legal document workflows: editing, redlining, clause search, research, data rooms. Use for contract review, precedent search, legal research, and document assembly.",
+  "available_in_sandbox": true,
+  "actions": [
+    {
+      "name": "documents convert",
+      "description": "Convert DOCX to Markdown preserving document structure. Input: DOCX file path. Output: Markdown file with sections mapped. Use when user needs editable text from a contract.",
+      "parameters": [
+        {"name": "input_path", "type": "argument", "required": true, "description": "Path to DOCX file to convert."},
+        {"name": "output-dir", "type": "option", "required": true, "description": "Directory where Markdown file will be written."},
+        {"name": "preserve-structure", "type": "option", "required": false, "description": "Keep section hierarchy in output (default: true)."}
+      ]
+    },
+    {
+      "name": "documents edit",
+      "description": "Edit a specific section of a DOCX document. Input: DOCX path, section ID, new content. Output: Modified DOCX. Use when user wants to change a specific clause.",
+      "parameters": [
+        {"name": "input_path", "type": "argument", "required": true, "description": "Path to DOCX file to edit."},
+        {"name": "section", "type": "option", "required": true, "description": "Section ID to edit (e.g., '3.2', 'definitions', 'indemnification')."},
+        {"name": "content", "type": "option", "required": false, "description": "New content for the section. If omitted, removes the section."},
+        {"name": "output", "type": "option", "required": true, "description": "Output DOCX path for modified document."}
+      ]
+    },
+    {
+      "name": "documents redline",
+      "description": "Generate Word Track Changes between two DOCX versions. Input: original and modified DOCX paths. Output: DOCX with Track Changes markup. Use when user needs to review changes between contract versions.",
+      "parameters": [
+        {"name": "original", "type": "option", "required": true, "description": "Path to original DOCX (baseline version)."},
+        {"name": "modified", "type": "option", "required": true, "description": "Path to modified DOCX (new version with changes)."},
+        {"name": "output", "type": "option", "required": true, "description": "Output path for redlined DOCX with Track Changes."}
+      ]
+    },
+    {
+      "name": "clauses search",
+      "description": "Semantic search for similar clauses in precedent database. Input: clause text or type. Output: matching clauses with source deals. Use when user wants precedent for a provision.",
+      "parameters": [
+        {"name": "query", "type": "argument", "required": true, "description": "Clause text or type to search for (e.g., 'indemnification', 'limitation of liability', or full clause text)."},
+        {"name": "top-k", "type": "option", "required": false, "description": "Number of results to return (default: 5)."}
+      ]
+    },
+    {
+      "name": "clauses index",
+      "description": "Add document clauses to precedent database. Input: DOCX path, deal metadata. Output: indexed clause count. Use after closing a deal to build precedent library.",
+      "parameters": [
+        {"name": "input_path", "type": "argument", "required": true, "description": "Path to DOCX file containing clauses to index."},
+        {"name": "deal-name", "type": "option", "required": true, "description": "Name of the deal for attribution (e.g., 'Acme Corp Acquisition 2024')."},
+        {"name": "deal-date", "type": "option", "required": false, "description": "Date of deal (ISO-8601 format, e.g., '2024-03-15')."}
+      ]
+    },
+    {
+      "name": "research cases",
+      "description": "Search legal case database. Input: search query, jurisdiction. Output: case summaries with citations. Use when user needs case law precedent.",
+      "parameters": [
+        {"name": "query", "type": "argument", "required": true, "description": "Search query for case law (e.g., 'tortious interference', 'breach of fiduciary duty')."},
+        {"name": "jurisdiction", "type": "option", "required": false, "description": "Jurisdiction filter (e.g., 'US-Federal', 'US-CA', 'UK', 'EU')."}
+      ]
+    },
+    {
+      "name": "research statutes",
+      "description": "Search regulatory/statute database. Input: query, jurisdiction. Output: statute text with citations. Use when user needs regulatory references.",
+      "parameters": [
+        {"name": "query", "type": "argument", "required": true, "description": "Search query for statutes/regulations (e.g., 'securities fraud', 'GDPR data processing')."},
+        {"name": "jurisdiction", "type": "option", "required": false, "description": "Jurisdiction filter (e.g., 'US-Federal', 'UK', 'EU')."}
+      ]
+    },
+    {
+      "name": "dataroom connect",
+      "description": "Authenticate to a data room. Input: provider, project ID. Output: session token. Use when user needs to access deal documents in a data room.",
+      "parameters": [
+        {"name": "provider", "type": "argument", "required": true, "description": "Data room provider. Values: intralinks, datasite, firmex, box."},
+        {"name": "project-id", "type": "option", "required": true, "description": "Project/deal room ID from the provider."}
+      ]
+    },
+    {
+      "name": "dataroom download",
+      "description": "Download document from data room. Input: document ID. Output: local file path. Use when user needs a specific document from the deal room.",
+      "parameters": [
+        {"name": "doc_id", "type": "argument", "required": true, "description": "Document ID in data room (from dataroom listing or search)."},
+        {"name": "output-dir", "type": "option", "required": true, "description": "Local directory where document will be downloaded."}
+      ]
+    },
+    {
+      "name": "sigpage generate",
+      "description": "Generate signature pages from party information. Input: parties JSON, template. Output: signature pages DOCX. Use when user needs execution-ready signature blocks.",
+      "parameters": [
+        {"name": "parties", "type": "argument", "required": true, "description": "Path to JSON file with party information (names, titles, addresses, entity types)."},
+        {"name": "output", "type": "option", "required": true, "description": "Output DOCX path for generated signature pages."},
+        {"name": "template", "type": "option", "required": false, "description": "Signature page template. Values: standard, counterpart, notarized (default: standard)."}
+      ]
+    }
+  ],
+  "documentation": {
+    "notes": [
+      "All commands return JSON to stdout",
+      "Use 'documents' group for contract manipulation (convert, edit, redline)",
+      "Use 'clauses' group for precedent search and indexing",
+      "Use 'research' group for legal case and statute research",
+      "Use 'dataroom' group for M&A data room access",
+      "Use 'sigpage' group for signature page generation"
+    ]
+  },
+  "bundled_skills": [
+    {
+      "name": "precedent-finder",
+      "description": "Find precedent clauses from past deals"
+    },
+    {
+      "name": "document-assembler",
+      "description": "Assemble contract documents from precedent deals"
+    },
+    {
+      "name": "email-edit-extractor",
+      "description": "Extract edits from client emails and apply to documents"
+    },
+    {
+      "name": "regulatory-monitor",
+      "description": "Monitor regulatory changes and flag issues in documents"
+    },
+    {
+      "name": "comment-implementer",
+      "description": "Junior associate agent for processing client communications"
+    }
+  ]
+}

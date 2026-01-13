@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aech-cli-legal"
+version = "0.1.0"
+description = "Legal document workflows CLI for Agent Aech"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "typer",
+    "python-docx",
+    "lxml",
+]
+
+[project.scripts]
+aech-cli-legal = "aech_cli_legal.main:run"
+
+[tool.setuptools.package-data]
+aech_cli_legal = [
+    "manifest.json",
+    "skills/*/SKILL.md",
+    "skills/*/scripts/*.py",
+]
