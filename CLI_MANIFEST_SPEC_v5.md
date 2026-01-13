@@ -6,13 +6,13 @@
 
 | Version | Date | Changes |
 |---------|------|---------|
-| 4.1 | 2026-01-13 | Added `bundled_skills` for packaging skills with CLIs |
-| 4.0 | 2026-01-09 | Initial grouped subcommand support for domain CLIs |
+| 5.0 | 2026-01-13 | Added `bundled_skills` for packaging skills with CLIs |
+| 4.0 | 2026-01-09 | Grouped subcommand support for domain CLIs |
 | 3.0 | 2025-12-15 | Added `available_in_sandbox` field |
 | 2.0 | 2025-11-01 | Structured `documentation` section with outputs and notes |
 | 1.0 | 2025-10-01 | Initial spec with actions and parameters |
 
-**Current Version:** 4.1
+**Current Version:** 5.0
 
 ---
 
