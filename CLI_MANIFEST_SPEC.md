@@ -1,8 +1,20 @@
-# CLI Manifest Specification (v4)
+# CLI Manifest Specification
 
 > For LLM-based coding agents building Agent Aech CLI capabilities
->
-> **Version:** 4.1 | **Last Updated:** 2026-01-13
+
+## Version History
+
+| Version | Date | Changes |
+|---------|------|---------|
+| 4.1 | 2026-01-13 | Added `bundled_skills` for packaging skills with CLIs |
+| 4.0 | 2026-01-09 | Initial grouped subcommand support for domain CLIs |
+| 3.0 | 2025-12-15 | Added `available_in_sandbox` field |
+| 2.0 | 2025-11-01 | Structured `documentation` section with outputs and notes |
+| 1.0 | 2025-10-01 | Initial spec with actions and parameters |
+
+**Current Version:** 4.1
+
+---
 
 ## Purpose
 
