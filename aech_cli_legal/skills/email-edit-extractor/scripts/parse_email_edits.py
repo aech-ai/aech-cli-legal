@@ -2,59 +2,27 @@
 """
 Parse email content for document edit instructions.
 
-Uses: aech-cli-msgraph (to fetch email if needed)
+Uses: aech-cli-legal documents extract-edits (LLM-powered)
 """
 import argparse
 import json
-import re
 import subprocess
+import sys
+import tempfile
 from pathlib import Path
-
-
-def extract_edits_from_text(text: str) -> list[dict]:
-    """Extract edit instructions from email text using patterns."""
-    edits = []
-
-    # Pattern: "change X to Y" or "replace X with Y"
-    change_patterns = [
-        r"change ['\"](.+?)['\"] to ['\"](.+?)['\"]",
-        r"replace ['\"](.+?)['\"] with ['\"](.+?)['\"]",
-        r"['\"](.+?)['\"] should (?:be|read) ['\"](.+?)['\"]",
-    ]
-
-    # Pattern: "in Section X.Y" to identify location
-    section_pattern = r"(?:in |at )?[Ss]ection (\d+(?:\.\d+)*)"
-
-    current_section = None
-    for line in text.split("\n"):
-        # Check for section reference
-        section_match = re.search(section_pattern, line)
-        if section_match:
-            current_section = section_match.group(1)
-
-        # Check for change instructions
-        for pattern in change_patterns:
-            match = re.search(pattern, line, re.IGNORECASE)
-            if match:
-                edits.append({
-                    "section": current_section,
-                    "original": match.group(1),
-                    "replacement": match.group(2),
-                    "source_line": line.strip()
-                })
-
-    return edits
 
 
 def main():
     parser = argparse.ArgumentParser(description="Parse email for document edits")
-    parser.add_argument("email_file", nargs="?", help="Path to .eml file")
-    parser.add_argument("--message-id", help="Fetch email by message ID")
+    parser.add_argument("email_file", nargs="?", help="Path to .eml or text file")
+    parser.add_argument("--message-id", help="Fetch email by message ID (requires aech-cli-msgraph)")
     parser.add_argument("--output", help="Output JSON file")
     parser.add_argument("--output-format", choices=["json", "summary"], default="json")
     args = parser.parse_args()
 
+    # Get email text
     email_text = ""
+    temp_file = None
 
     if args.email_file:
         email_text = Path(args.email_file).read_text()
@@ -65,31 +33,48 @@ def main():
             result = subprocess.run(cmd, capture_output=True, text=True, check=True)
             email_text = result.stdout
         except subprocess.CalledProcessError:
-            email_text = ""
+            print(json.dumps({"error": "Failed to fetch email from msgraph"}))
+            sys.exit(1)
     else:
         # Read from stdin
-        import sys
         email_text = sys.stdin.read()
 
-    edits = extract_edits_from_text(email_text)
+    if not email_text.strip():
+        print(json.dumps({"error": "No email content provided"}))
+        sys.exit(1)
 
-    output = {
-        "edit_count": len(edits),
-        "edits": edits
-    }
+    # Write to temp file for CLI
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+        f.write(email_text)
+        temp_file = f.name
 
-    if args.output_format == "summary":
-        print(f"Found {len(edits)} edit(s):")
-        for i, edit in enumerate(edits, 1):
-            section = edit.get("section", "unspecified")
-            print(f"  {i}. Section {section}: '{edit['original']}' → '{edit['replacement']}'")
-    else:
-        result = json.dumps(output, indent=2)
+    try:
+        # Use LLM-powered extraction from CLI
+        cmd = ["aech-cli-legal", "documents", "extract-edits", temp_file]
         if args.output:
-            Path(args.output).write_text(result)
-            print(f"Edits written to {args.output}")
+            cmd.extend(["--output", args.output])
+
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+
+        if args.output_format == "summary":
+            # Parse and format as summary
+            data = json.loads(result.stdout)
+            edits = data.get("edits", [])
+            print(f"Found {len(edits)} edit(s):")
+            for i, edit in enumerate(edits, 1):
+                section = edit.get("section", "unspecified")
+                orig = edit.get("original_text", "")[:30]
+                repl = edit.get("replacement_text", "")[:30]
+                print(f"  {i}. Section {section}: '{orig}...' → '{repl}...'")
         else:
-            print(result)
+            print(result.stdout)
+
+    except subprocess.CalledProcessError as e:
+        print(json.dumps({"error": f"Edit extraction failed: {e.stderr}"}))
+        sys.exit(1)
+    finally:
+        if temp_file:
+            Path(temp_file).unlink(missing_ok=True)
 
 
 if __name__ == "__main__":

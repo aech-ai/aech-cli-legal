@@ -12,6 +12,8 @@ dependencies = [
     "typer",
     "python-docx",
     "lxml",
+    "pydantic-ai",
+    "pydantic>=2.0",
 ]
 
 [project.scripts]
