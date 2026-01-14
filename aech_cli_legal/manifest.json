@@ -2,10 +2,18 @@
   "name": "legal",
   "type": "cli",
   "command": "aech-cli-legal",
-  "spec_version": 4,
-  "description": "Legal document workflows: editing, redlining, clause search, research, data rooms. Use for contract review, precedent search, legal research, and document assembly.",
+  "spec_version": 5,
+  "description": "Legal document workflows: editing, redlining, clause search, research, data rooms. Use for contract review, precedent search, legal research, and document assembly. Includes LLM-powered classification, analysis, and edit extraction.",
   "available_in_sandbox": true,
   "actions": [
+    {
+      "name": "classify",
+      "description": "Classify email/text content using LLM. Input: text file (email, message). Output: JSON with classification type, confidence, topic, suggested action. Use when triaging incoming communications to determine handling. Classifications: edit_request (document changes), research_question (legal research), approval_request (needs sign-off), informational (FYI only), urgent_action (immediate attention).",
+      "parameters": [
+        {"name": "input_path", "type": "argument", "required": true, "description": "Path to email or text file to classify."},
+        {"name": "output", "type": "option", "required": false, "description": "Output JSON file path. If omitted, prints to stdout."}
+      ]
+    },
     {
       "name": "documents convert",
       "description": "Convert DOCX to Markdown preserving document structure. Input: DOCX file path. Output: Markdown file with sections mapped. Use when user needs editable text from a contract.",
@@ -32,6 +40,22 @@
         {"name": "original", "type": "option", "required": true, "description": "Path to original DOCX (baseline version)."},
         {"name": "modified", "type": "option", "required": true, "description": "Path to modified DOCX (new version with changes)."},
         {"name": "output", "type": "option", "required": true, "description": "Output path for redlined DOCX with Track Changes."}
+      ]
+    },
+    {
+      "name": "documents analyze",
+      "description": "Analyze document for regulatory concerns and jurisdictions using LLM. Input: document file (DOCX, TXT, or MD). Output: JSON with regulatory categories, jurisdictions, risk level (high/medium/low/none), and key concerns. Use when reviewing contracts for compliance issues or regulatory exposure.",
+      "parameters": [
+        {"name": "input_path", "type": "argument", "required": true, "description": "Path to document file to analyze (DOCX, TXT, or MD)."},
+        {"name": "output", "type": "option", "required": false, "description": "Output JSON file path. If omitted, prints to stdout."}
+      ]
+    },
+    {
+      "name": "documents extract-edits",
+      "description": "Extract edit instructions from text (email, comments) using LLM. Input: text file containing edit requests. Output: JSON with structured edit instructions (section, original text, replacement text, context). Use when processing email feedback or markup comments into actionable document edits.",
+      "parameters": [
+        {"name": "input_path", "type": "argument", "required": true, "description": "Path to text file with edit instructions (email, comments, etc.)."},
+        {"name": "output", "type": "option", "required": false, "description": "Output JSON file path. If omitted, prints to stdout."}
       ]
     },
     {
@@ -96,7 +120,9 @@
   "documentation": {
     "notes": [
       "All commands return JSON to stdout",
-      "Use 'documents' group for contract manipulation (convert, edit, redline)",
+      "LLM-powered commands (classify, documents analyze, documents extract-edits) require AECH_LLM_WORKER_MODEL env var",
+      "Use 'classify' for triaging incoming communications",
+      "Use 'documents' group for contract manipulation (convert, edit, redline) and LLM analysis (analyze, extract-edits)",
       "Use 'clauses' group for precedent search and indexing",
       "Use 'research' group for legal case and statute research",
       "Use 'dataroom' group for M&A data room access",
