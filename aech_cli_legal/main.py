@@ -12,6 +12,7 @@ from pydantic import BaseModel
 from pydantic_ai import Agent
 
 from . import clauses, dataroom, documents, research, sigpage
+from .model_utils import parse_model_string, get_model_settings
 
 app = typer.Typer(help="Legal document workflows: editing, redlining, clause search, research, data rooms")
 
@@ -34,9 +35,12 @@ class EmailClassification(BaseModel):
     reasoning: str  # Why this classification
 
 
-def _get_model() -> str:
-    """Get the configured LLM model from environment."""
-    return os.environ.get("AECH_LLM_WORKER_MODEL", "openai:gpt-4o")
+def _get_model_config() -> tuple[str, any]:
+    """Get the configured LLM model and settings from environment."""
+    model_string = os.environ.get("AECH_LLM_WORKER_MODEL", "openai:gpt-4o")
+    model_name, _ = parse_model_string(model_string)
+    model_settings = get_model_settings(model_string)
+    return model_name, model_settings
 
 
 @app.command()
@@ -65,7 +69,8 @@ def classify(
 
     text = input_file.read_text()
 
-    agent = Agent(_get_model(), result_type=EmailClassification)
+    model_name, model_settings = _get_model_config()
+    agent = Agent(model_name, result_type=EmailClassification, model_settings=model_settings)
 
     prompt = f"""Classify this email/message for a legal workflow system.
 
